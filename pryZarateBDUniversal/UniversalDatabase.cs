@@ -2,7 +2,6 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Reflection;
 
 namespace pryZarateBDUniversal
@@ -51,7 +50,7 @@ namespace pryZarateBDUniversal
                         // Ignorar y lanzar un error más claro abajo.
                     }
 
-                    throw new ConfigurationErrorsException(
+                    throw new InvalidOperationException(
                         "No se puede obtener el proveedor 'System.Data.SQLite'.\n" +
                         "Pasos para resolver:\n" +
                         "1) Instala el paquete NuGet 'System.Data.SQLite' o 'System.Data.SQLite.Core' en el proyecto.\n" +
@@ -63,7 +62,7 @@ namespace pryZarateBDUniversal
                 }
 
                 // Para otros proveedores, volver a lanzar una excepción más informativa.
-                throw new ConfigurationErrorsException($"No se encuentra o no se puede cargar el proveedor de datos .NET Framework registrado: '{providerInvariantName}'", ex);
+                throw new InvalidOperationException($"No se encuentra o no se puede cargar el proveedor de datos .NET Framework registrado: '{providerInvariantName}'", ex);
             }
         }
 

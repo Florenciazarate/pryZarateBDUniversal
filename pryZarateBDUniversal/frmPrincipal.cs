@@ -20,27 +20,74 @@ namespace pryZarateBDUniversal
 
         private void frmPrincipal_Load(object sender, EventArgs e)
         {
-            // Ejemplo: crear y usar una base de datos SQLite en archivo local.
-            var dbPath = System.IO.Path.Combine(Application.StartupPath, "miBase.sqlite");
-            var connString = $"Data Source={dbPath};Version=3;";
+            // Llenar combo de proveedores con opciones comunes
+            cmbProvider.Items.Clear();
+            cmbProvider.Items.Add("System.Data.SQLite");
+            cmbProvider.Items.Add("System.Data.SqlClient");
+            cmbProvider.SelectedIndex = 0;
 
-            using (var db = new UniversalDatabase("System.Data.SQLite", connString))
+            // Valor por defecto para cadena/file
+            txtConnection.Text = System.IO.Path.Combine(Application.StartupPath, "miBase.sqlite");
+        }
+
+        private void btnBrowse_Click(object sender, EventArgs e)
+        {
+            using (var ofd = new OpenFileDialog())
             {
-                // Crear tabla si no existe
-                db.ExecuteScript(@"CREATE TABLE IF NOT EXISTS Personas (
-                                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        Nombre TEXT NOT NULL,
-                                        Edad INTEGER
-                                    );");
-
-                // Insertar algunos datos
-                db.ExecuteNonQuery("INSERT INTO Personas (Nombre, Edad) VALUES (@nombre, @edad);",
-                    new[] { db.CreateParameter("@nombre", "Juan"), db.CreateParameter("@edad", 30) });
-
-                // Leer datos
-                var dt = db.GetDataTable("SELECT Id, Nombre, Edad FROM Personas;");
-                dgv.DataSource = dt; // Asume que hay un DataGridView llamado dgv en el formulario
+                ofd.Filter = "SQLite files (*.sqlite;*.db)|*.sqlite;*.db|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    txtConnection.Text = ofd.FileName;
+                }
             }
+        }
+
+        private void btnConnect_Click(object sender, EventArgs e)
+        {
+            var provider = cmbProvider.SelectedItem as string;
+            if (string.IsNullOrWhiteSpace(provider))
+                provider = "System.Data.SQLite";
+
+            string connString;
+            if (provider == "System.Data.SQLite")
+            {
+                connString = $"Data Source={txtConnection.Text};Version=3;";
+            }
+            else
+            {
+                connString = txtConnection.Text; // Para SQL Server y otros, usuario proporciona la cadena
+            }
+
+            try
+            {
+                using (var db = new UniversalDatabase(provider, connString))
+                {
+                    var dt = db.GetDataTable("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;");
+                    // Si es SQL Server u otro proveedor, intentar consulta genérica
+                    if (dt.Rows.Count == 0 && provider != "System.Data.SQLite")
+                    {
+                        dt = db.GetDataTable("SELECT TOP 100 * FROM INFORMATION_SCHEMA.TABLES");
+                    }
+
+                    dgv.DataSource = dt;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void dgv_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var row = dgv.Rows[e.RowIndex];
+            var values = new StringBuilder();
+            foreach (DataGridViewCell cell in row.Cells)
+            {
+                values.AppendFormat("{0}: {1}\n", dgv.Columns[cell.ColumnIndex].HeaderText, cell.Value);
+            }
+            MessageBox.Show(values.ToString(), "Fila", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
