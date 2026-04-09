@@ -6,9 +6,6 @@ using System.Reflection;
 
 namespace pryZarateBDUniversal
 {
-    // Clase genérica para acceso a bases de datos mediante DbProviderFactory.
-    // Permite usar distintos proveedores (SQL Server, SQLite, MySQL, etc.) pasando
-    // el nombre del proveedor y la cadena de conexión.
     public class UniversalDatabase : IDisposable
     {
         private readonly DbProviderFactory _factory;
@@ -29,12 +26,10 @@ namespace pryZarateBDUniversal
             }
             catch (Exception ex)
             {
-                // Intento de recuperación específico para System.Data.SQLite cuando no está registrado en config.
                 if (string.Equals(providerInvariantName, "System.Data.SQLite", StringComparison.OrdinalIgnoreCase))
                 {
                     try
                     {
-                        // Intentar cargar la fábrica vía reflexión (requiere que la DLL de SQLite esté referenciada/copied to output).
                         var asm = Assembly.Load("System.Data.SQLite");
                         var type = asm.GetType("System.Data.SQLite.SQLiteFactory");
                         var field = type?.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
@@ -47,7 +42,6 @@ namespace pryZarateBDUniversal
                     }
                     catch
                     {
-                        // Ignorar y lanzar un error más claro abajo.
                     }
 
                     throw new InvalidOperationException(
@@ -61,7 +55,6 @@ namespace pryZarateBDUniversal
                         "Si ya instalaste el paquete, revisa la plataforma (x86/x64) y las dependencias nativas.", ex);
                 }
 
-                // Para otros proveedores, volver a lanzar una excepción más informativa.
                 throw new InvalidOperationException($"No se encuentra o no se puede cargar el proveedor de datos .NET Framework registrado: '{providerInvariantName}'", ex);
             }
         }
@@ -129,7 +122,6 @@ namespace pryZarateBDUniversal
             }
         }
 
-        // Ejecuta un script que puede contener varias sentencias separadas por la palabra GO en una línea.
         public void ExecuteScript(string script)
         {
             if (string.IsNullOrWhiteSpace(script))
@@ -185,7 +177,6 @@ namespace pryZarateBDUniversal
 
         public void Dispose()
         {
-            // No hay recursos a liberar en esta implementación, pero se deja para la interfaz.
         }
     }
 }

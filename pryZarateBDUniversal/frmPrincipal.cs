@@ -20,13 +20,11 @@ namespace pryZarateBDUniversal
 
         private void frmPrincipal_Load(object sender, EventArgs e)
         {
-            // Llenar combo de proveedores con opciones comunes
             cmbProvider.Items.Clear();
             cmbProvider.Items.Add("System.Data.SQLite");
             cmbProvider.Items.Add("System.Data.SqlClient");
             cmbProvider.SelectedIndex = 0;
 
-            // Valor por defecto para cadena/file
             txtConnection.Text = System.IO.Path.Combine(Application.StartupPath, "miBase.sqlite");
         }
 
@@ -55,7 +53,7 @@ namespace pryZarateBDUniversal
             }
             else
             {
-                connString = txtConnection.Text; // Para SQL Server y otros, usuario proporciona la cadena
+                connString = txtConnection.Text; 
             }
 
             try
@@ -63,7 +61,6 @@ namespace pryZarateBDUniversal
                 using (var db = new UniversalDatabase(provider, connString))
                 {
                     var dt = db.GetDataTable("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;");
-                    // Si es SQL Server u otro proveedor, intentar consulta genérica
                     if (dt.Rows.Count == 0 && provider != "System.Data.SQLite")
                     {
                         dt = db.GetDataTable("SELECT TOP 100 * FROM INFORMATION_SCHEMA.TABLES");
