@@ -11,6 +11,7 @@
         private System.Windows.Forms.TextBox txtConnection;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Button btnBrowse;
+        private System.Windows.Forms.Button btnImport;
         private System.Windows.Forms.Label lblProvider;
         private System.Windows.Forms.Label lblConnection;
 
@@ -67,9 +68,21 @@
             this.txtConnection.Size = new System.Drawing.Size(240, 20);
             this.txtConnection.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtConnection.AllowDrop = true;
+            this.txtConnection.DragEnter += new System.Windows.Forms.DragEventHandler(this.txtConnection_DragEnter);
+            this.txtConnection.DragDrop += new System.Windows.Forms.DragEventHandler(this.txtConnection_DragDrop);
             this.Controls.Add(this.txtConnection);
 
-            // Browse button (para SQLite)
+            // Import button (copia el archivo al directorio de la app)
+            this.btnImport = new System.Windows.Forms.Button();
+            this.btnImport.Location = new System.Drawing.Point(650, 6);
+            this.btnImport.Size = new System.Drawing.Size(30, 24);
+            this.btnImport.Text = "Imp";
+            this.btnImport.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
+            this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
+            this.Controls.Add(this.btnImport);
+
+            // Browse button (para SQLite/Access)
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnBrowse.Location = new System.Drawing.Point(690, 6);
             this.btnBrowse.Size = new System.Drawing.Size(30, 24);
