@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.IO;
@@ -15,7 +14,7 @@ namespace pryZarateBDUniversal
         public string RutaArchivo => _rutaArchivo; // Devuelve la ruta del archivo conectado.
         public bool EstaConectado => !string.IsNullOrEmpty(_connectionString); // True si hay una conexión configurada.
 
-        // Intenta conectar a un archivo de Access. Prueba ACE 16, ACE 12 y Jet 4.0 hasta que uno funcione.
+        // Conecta a un archivo de Access usando el provider ACE OLEDB 12.0.
         public bool Conectar(string rutaArchivo, out string errorMessage)
         {
             errorMessage = null;
@@ -26,49 +25,10 @@ namespace pryZarateBDUniversal
                 return false;
             }
 
-            var extension = Path.GetExtension(rutaArchivo).ToLowerInvariant();
-            var providers = new List<string>();
-
-            if (extension == ".mdb") // Para .mdb (Access antiguo) priorizo Jet.
-            {
-                providers.Add("Microsoft.Jet.OLEDB.4.0");
-                providers.Add("Microsoft.ACE.OLEDB.12.0");
-                providers.Add("Microsoft.ACE.OLEDB.16.0");
-            }
-            else // Para .accdb (Access moderno) priorizo ACE.
-            {
-                providers.Add("Microsoft.ACE.OLEDB.16.0");
-                providers.Add("Microsoft.ACE.OLEDB.12.0");
-                providers.Add("Microsoft.Jet.OLEDB.4.0");
-            }
-
-            Exception ultimoError = null;
-            foreach (var provider in providers) // Pruebo provider por provider.
-            {
-                var cs = $"Provider={provider};Data Source={rutaArchivo};Persist Security Info=False;";
-                try
-                {
-                    using (var conn = new OleDbConnection(cs))
-                    {
-                        conn.Open(); // Si esto no falla, el provider funciona.
-                    }
-                    _connectionString = cs;
-                    _rutaArchivo = rutaArchivo;
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    ultimoError = ex; // Guardo el error por si todos fallan.
-                }
-            }
-
-            errorMessage = "No se pudo conectar al archivo. " +
-                           "Verifica tener instalado Microsoft Access Database Engine (ACE) " +
-                           "y que la plataforma de compilación coincida (x86/x64).";
-            if (ultimoError != null)
-                errorMessage += "\n\nÚltimo error: " + ultimoError.Message;
-
-            return false;
+            // Armo la cadena de conexión con el provider ACE OLEDB 12.0 y la ruta del archivo.
+            _connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={rutaArchivo};Persist Security Info=False;";
+            _rutaArchivo = rutaArchivo;
+            return true;
         }
 
         // Devuelve los nombres de todas las tablas de usuario en la base (sin las del sistema MSys*).
